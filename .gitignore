@@ -1,6 +1,0 @@
-virtual/bin
-virtual/lib
-virtual/pyvenv.cfg
-virtual/include/.env
-virtual/include/flask_session
-virtual/include/__pycache__
