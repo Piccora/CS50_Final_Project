@@ -1,9 +1,20 @@
-from flask import Flask, flash, redirect, render_template, request, session
+import json
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    jsonify,
+    make_response,
+)
 import os
 import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
 import sys
 import certifi
+import time
 from decouple import config
 
 from helpers import apology, login_required, lookup, usd
@@ -55,23 +66,15 @@ def after_request(response):
 @login_required
 def index():
     # Check if there is no password
-    if (
-        len(
-            db.execute(
-                "SELECT password FROM password_table WHERE user_id = ?",
-                (session["user_id"],),
-            ).fetchall()
+    if len(list(password.find({"user_id": session["user_id"]}))) == 0:
+        return render_template(
+            "index.html", name=list(users.find({"userId": session["user_id"]}))
         )
-        == 0
-    ):
-        return render_template("index.html")
 
     return render_template(
         "index.html",
-        tables=db.execute(
-            "SELECT site, password FROM password_table WHERE user_id = ?",
-            (session["user_id"],),
-        ).fetchall(),
+        tables=list(password.find({"user_id": session["user_id"]})),
+        name=list(users.find({"userId": session["user_id"]})),
     )
 
 
@@ -80,14 +83,16 @@ def index():
 def create_password():
     if request.method == "POST":
         # Check if the site and email of that password is already stored in the database
-        credential_check = password.find(
-            {
-                "user_id": session["user_id"],
-                "site": request.form.get("site"),
-                "email": request.form.get("email"),
-            }
+        credential_check = list(
+            password.find(
+                {
+                    "user_id": session["user_id"],
+                    "site": request.form.get("site"),
+                    "email": request.form.get("email"),
+                }
+            )
         )
-        if credential_check:
+        if len(credential_check) != 0:
             return apology("website/application and email already exist", 400)
         password.insert_one(
             {
@@ -246,6 +251,8 @@ def register():
             }
         )
 
+        time.sleep(5)
+
         # Remember which user has logged in
         session["user_id"] = list(
             users.find({"username": request.form.get("username").strip()})
@@ -267,3 +274,23 @@ def sell():
 @login_required
 def password_change():
     pass
+
+
+@app.route("/send", methods=["GET", "POST"])
+@login_required
+def send():
+    if request.method == "POST":
+        response_js = request.get_json()
+        password_query = password.find_one(
+            {
+                "site": response_js["site"],
+                "email": response_js["email"],
+                "user_id": session["user_id"],
+            }
+        )
+        password_result = password_query["password"]
+        res = make_response(
+            jsonify({"message": "JSON received", "password": password_result}), 200
+        )
+        return res
+    return redirect("/")
