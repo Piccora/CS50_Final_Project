@@ -110,7 +110,7 @@ def create_password():
 @app.route("/history")
 @login_required
 def history():
-    pass
+    return redirect("/")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -273,7 +273,7 @@ def delete_password():
 @app.route("/password-change", methods=["GET", "POST"])
 @login_required
 def password_change():
-    pass
+    return redirect("/")
 
 
 @app.route("/get-password", methods=["GET", "POST"])
