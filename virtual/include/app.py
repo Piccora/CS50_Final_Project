@@ -168,35 +168,23 @@ def logout():
 
 @app.route("/change-password", methods=["GET", "POST"])
 @login_required
-def quote():
+def change_password():
     if request.method == "POST":
-        old_password = password.find(
-            {
-                "user_id": session["user_id"],
-                "site": request.form.get("selection").strip(),
-            }
-        )
-        if old_password["password"] != request.form.get("old_password").strip():
-            return apology("wrong old password", 400)
-        if old_password["email"] != request.form.get("email").strip():
-            return apology("wrong email", 400)
-        if request.form.get("old_password") == request.form.get("new_password"):
-            return apology("new password is the same as old password", 400)
-        if request.form.get("new_password") != request.form.get("confirm_password"):
-            return apology("new passwords don't match", 400)
+        response_js = request.get_json()
         password.update_one(
             {
+                "site": response_js["site"],
+                "email": response_js["email"],
                 "user_id": session["user_id"],
-                "site": request.form.get("selection").strip(),
-                "email": request.form.get("email").strip(),
             },
-            {"$set": {"password": request.form.get("new_password")}},
+            {"$set": {"password": response_js["password"]}},
         )
-    else:
-        return render_template(
-            "change_password.html",
-            table=list(password.find({"user_id": session["user_id"]})),
-        )
+        res = make_response(jsonify({"message": "JSON received"}), 200)
+        return res
+    return render_template(
+        "change_password.html",
+        tables=list(password.find({"user_id": session["user_id"]})),
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -266,8 +254,20 @@ def register():
 
 @app.route("/delete-password", methods=["GET", "POST"])
 @login_required
-def sell():
-    pass
+def delete_password():
+    if request.method == "POST":
+        response_js = request.get_json()
+        password.delete_one(
+            {
+                "site": response_js["site"],
+                "email": response_js["email"],
+                "user_id": session["user_id"],
+            }
+        )
+        res = make_response(jsonify({"message": "JSON received"}), 200)
+        return res
+    distinct_sites = password.distinct("site")
+    return render_template("delete_password.html", tables=distinct_sites)
 
 
 @app.route("/password-change", methods=["GET", "POST"])
@@ -276,9 +276,9 @@ def password_change():
     pass
 
 
-@app.route("/send", methods=["GET", "POST"])
+@app.route("/get-password", methods=["GET", "POST"])
 @login_required
-def send():
+def get_password():
     if request.method == "POST":
         response_js = request.get_json()
         password_query = password.find_one(
@@ -292,5 +292,35 @@ def send():
         res = make_response(
             jsonify({"message": "JSON received", "password": password_result}), 200
         )
+        return res
+    return redirect("/")
+
+
+@app.route("/get-email", methods=["GET", "POST"])
+@login_required
+def get_email():
+    if request.method == "POST":
+        response_js = request.get_json()
+        email_query = list(
+            password.find(
+                {
+                    "site": response_js["site"],
+                    "user_id": session["user_id"],
+                }
+            )
+        )
+        # print(email_query)
+        if len(email_query) == 0:
+            res = make_response(
+                jsonify({"message": "JSON error (no result returned)"}),
+                404,
+            )
+        else:
+            email_list = []
+            for email in email_query:
+                email_list.append(email["email"])
+            res = make_response(
+                jsonify({"message": "JSON received", "email": email_list}), 200
+            )
         return res
     return redirect("/")
