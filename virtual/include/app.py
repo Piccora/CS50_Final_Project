@@ -11,17 +11,15 @@ from flask import (
 import sys
 import certifi
 import time
-from decouple import config
+import os
 
 from helpers import apology, login_required, lookup, usd
-
-PATH = config("PATH")
-
-sys.path.insert(1, PATH)
-
 from flask_session import Session
 import pymongo
 from pymongo import MongoClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure application
 app = Flask(__name__)
@@ -38,9 +36,10 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure application to use mongoDB database
-API_CONNECTION = config("CONNECTION")
 
-cluster = MongoClient(API_CONNECTION, tlsCAFile=certifi.where())
+cluster = MongoClient(os.getenv("CONNECTION"), tlsCAFile=certifi.where())
+
+# Configuring database's collections
 db = cluster["CS50"]
 history = db["history"]
 password = db["password_table"]
