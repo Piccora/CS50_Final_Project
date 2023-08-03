@@ -127,7 +127,7 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = users.find({"username": request.form.get("username").strip()})
+        rows = list(users.find({"username": request.form.get("username").strip()}))
         username_count = users.count_documents(
             {"username": request.form.get("username").strip()}
         )
@@ -231,15 +231,14 @@ def register():
                 "username": request.form.get("username").strip(),
                 "email": request.form.get("email").strip(),
                 "password": request.form.get("password").strip(),
+                "userId": users.count_documents({}) + 1
             }
         )
 
         time.sleep(5)
 
         # Remember which user has logged in
-        session["user_id"] = list(
-            users.find({"username": request.form.get("username").strip()})
-        )[0]["userId"]
+        session["user_id"] = users.find_one({"username": request.form.get("username").strip()})["userId"]
 
         # Redirect user to home page
         return redirect("/")
@@ -304,7 +303,6 @@ def get_email():
                 }
             )
         )
-        # print(email_query)
         if len(email_query) == 0:
             res = make_response(
                 jsonify({"message": "JSON error (no result returned)"}),
