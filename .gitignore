@@ -1,4 +1,2 @@
 virtual/include/env
-virtual/include/.env
-virtual/include/flask_session
-virtual/include/__pycache__
+.env
