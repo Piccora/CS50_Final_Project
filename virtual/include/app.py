@@ -37,7 +37,7 @@ cluster = MongoClient(os.getenv("CONNECTION"), tlsCAFile=certifi.where())
 # Configure session to use mongoDB (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "mongodb"
-app.config["SESSION_MONGODB_DB"] = cluster["CS50"]
+app.config["SESSION_MONGODB_DB"] = "CS50"
 app.config["SESSION_MONGODB_COLLECT"] = "sessions"
 Session(app)
 
