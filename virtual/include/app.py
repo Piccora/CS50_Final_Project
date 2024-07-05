@@ -8,6 +8,7 @@ from flask import (
     jsonify,
     make_response,
 )
+
 import sys
 import certifi
 import time
@@ -30,14 +31,15 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
-# app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
-
 # Configure application to use mongoDB database
-
 cluster = MongoClient(os.getenv("CONNECTION"), tlsCAFile=certifi.where())
+
+# Configure session to use mongoDB (instead of signed cookies)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "mongodb"
+app.config["SESSION_MONGODB_DB"] = cluster["CS50"]
+app.config["SESSION_MONGODB_COLLECT"] = "sessions"
+Session(app)
 
 # Configuring database's collections
 db = cluster["CS50"]
