@@ -214,13 +214,13 @@ def register():
             return apology("passwords don't match", 400)
 
         # Ensure there's no duplicate username
-        username_check = users.find({"username": request.form.get("username").strip()})
+        username_check = list(users.find({"username": request.form.get("username").strip()}))
         for username in username_check:
             if request.form.get("username").strip() == username["username"]:
                 return apology("username is not available", 400)
 
         # Ensure there's no duplicate email
-        email_check = users.find({"email": request.form.get("email").strip()})
+        email_check = list(users.find({"email": request.form.get("email").strip()}))
         for email in email_check:
             if request.form.get("email").strip() == email["email"]:
                 return apology("email is not available", 400)
