@@ -48,9 +48,6 @@ history = db["history"]
 password = db["password_table"]
 users = db["users"]
 
-# Make sure API key is set
-
-
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
